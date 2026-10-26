@@ -1,0 +1,3 @@
+"""Resource Radar: auditable discovery, not a general-purpose web crawler."""
+
+__version__ = "0.1.0"
