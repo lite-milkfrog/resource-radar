@@ -2,12 +2,20 @@
 
 import argparse
 import json
+import sys
 
 from .catalog import Catalog, SOURCES
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="resource-radar", description="Local resource discovery and MCP server")
+    # Windows consoles can use GBK; don't crash on Unicode characters from catalogs.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="backslashreplace")
+
+    parser = argparse.ArgumentParser(
+        prog="resource-radar",
+        description="Find better tools, faster — local resource discovery for AI agents",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("serve")
     sub.add_parser("status")

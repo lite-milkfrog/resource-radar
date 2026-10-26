@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "resource-radar-mcp"
 version = "0.1.0"
-description = "Local multi-source resource discovery index and MCP server"
+description = "Find better tools, faster: a local-first MCP index of curated resources and userscripts"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["mcp>=2.0,<3", "requests>=2.31,<3"]
