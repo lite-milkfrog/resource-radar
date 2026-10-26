@@ -54,6 +54,15 @@ class CatalogTests(unittest.TestCase):
         self.cat.import_markdown("fmhy", SAMPLE)
         self.assertEqual(self.cat.search("Ollama", source="awesome"), [])
 
+    def test_userscript_html_summary_import(self):
+        text = '# Extensions\n<summary><a href="https://github.com/example/userscript/#readme">YouTube Helper</a> - Enhance the page.</summary><br>'
+        self.cat.import_markdown("awesome_userscripts", text)
+        hits = self.cat.search("YouTube", source="awesome_userscripts")
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0]["description"], "Enhance the page.")
+        self.assertEqual(hits[0]["url"], "https://github.com/example/userscript")
+        self.assertEqual(hits[0]["category"], "Extensions")
+
 
 if __name__ == "__main__":
     unittest.main()

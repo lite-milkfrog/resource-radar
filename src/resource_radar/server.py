@@ -25,8 +25,16 @@ def search_resources(query: str, source: str = "", limit: int = 10) -> dict:
 
 @mcp.tool()
 def search_userscripts(query: str, limit: int = 10) -> dict:
-    """Query Greasy Fork's official read-only JSON API; return explicit errors on blocking."""
-    return _script_search(query, limit)
+    """Query Greasy Fork live, with local Awesome Userscripts fallback if blocked."""
+    live = _script_search(query, limit)
+    if not live.get("results"):
+        catalog = Catalog()
+        try:
+            live["local_fallback"] = catalog.search(query, source="awesome_userscripts", limit=limit)
+            live["fallback_source"] = "awesome_userscripts"
+        finally:
+            catalog.close()
+    return live
 
 
 @mcp.tool()

@@ -4,13 +4,13 @@ An **independent local resource discovery index** for finding under-the-radar to
 
 ## Current implementation (v0.1)
 
-- Bounded Markdown imports: FMHY official `single-page.md`, GitHub Awesome, Awesome Selfhosted, Free for Dev.
+- Bounded Markdown imports: FMHY official `single-page.md`, GitHub Awesome, Awesome Selfhosted, Free for Dev, Awesome Userscripts.
 - SQLite database, FTS5 + substring fallback, canonical-URL de-duplication and multi-source provenance.
 - Seven MCP tools: `search_resources`, `search_userscripts`, `inspect_resource`, `inspect_script`, `compare_resources`, `sync_sources`, `source_status`.
-- Optional Greasy Fork read-only JSON API; some networks are blocked by Cloudflare. Reports HTTP 403/429 explicitly rather than bypassing protection.
+- Optional Greasy Fork read-only JSON API; some networks are blocked by Cloudflare. Reports HTTP 403/429 explicitly rather than bypassing protection, and searches the local Awesome Userscripts catalog as fallback.
 - Local **stdio** transport; no scraping arbitrary URLs, no automatic installation or execution of JavaScript.
 
-Other planned inputs (ScriptCat, OpenUserJS, HelloGitHub, etc.) require independent API/access verification and are **not** implemented yet.
+Other planned inputs (ScriptCat store, OpenUserJS, HelloGitHub, etc.) require independent API/access verification and are **not** implemented yet. ScriptCat separately publishes an `sctl` CLI and MCP integration, but Resource Radar has not integrated it.
 
 ## Install on Windows
 

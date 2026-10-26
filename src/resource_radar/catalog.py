@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import os
 import re
 import sqlite3
@@ -19,8 +20,10 @@ SOURCES = {
     "awesome": "https://raw.githubusercontent.com/sindresorhus/awesome/main/readme.md",
     "awesome_selfhosted": "https://raw.githubusercontent.com/awesome-selfhosted/awesome-selfhosted/master/README.md",
     "free_for_dev": "https://raw.githubusercontent.com/ripienaar/free-for-dev/master/README.md",
+    "awesome_userscripts": "https://raw.githubusercontent.com/awesome-scripts/awesome-userscripts/master/README.md",
 }
 LINK = re.compile(r"(?<!!)\[([^\]\n]{2,160})\]\((https?://[^\s)<>]+)(?:\s+\"[^\"]*\")?\)")
+HTML_SUMMARY = re.compile(r'<summary[^>]*>\s*<a\s+href="(https?://[^"]+)">([^<]+)</a>(.*?)</summary>', re.I)
 MARKUP = re.compile(r"[`*_~#>\[\]]")
 SKIP_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
@@ -43,10 +46,10 @@ def canonicalize(url: str) -> str:
 
 def parse_markdown(text: str, source: str):
     """Parse links, remembering nearest section; do not treat an index as a software endorsement."""
-    section = "General"
+    section = "Userscripts" if source == "awesome_userscripts" else "General"
     for line in text.splitlines():
         stripped = line.strip()
-        if stripped.startswith("#") and not stripped.startswith("##!"):
+        if stripped.startswith("#") and not stripped.startswith("##!") and "<" not in stripped:
             section = MARKUP.sub("", stripped).strip()[:160] or section
         if not stripped or stripped.startswith("<!--"):
             continue
@@ -61,6 +64,15 @@ def parse_markdown(text: str, source: str):
             surrounding = (line[:m.start()] + " " + line[m.end():]).strip(" *-|:>\t")
             desc = MARKUP.sub("", surrounding).strip()[:240]
             yield {"title": title[:160], "url": url, "description": desc, "category": section, "source": source}
+        # Some curated README catalogs (notably Awesome Userscripts) use
+        # HTML <summary><a> entries rather than Markdown links.
+        for m in HTML_SUMMARY.finditer(line):
+            url = canonicalize(html.unescape(m.group(1)))
+            title = html.unescape(m.group(2)).strip()[:160]
+            desc = re.sub(r"<[^>]+>", "", html.unescape(m.group(3))).strip(" -:\t")[:240]
+            if url and title:
+                yield {"title": title, "url": url, "description": desc,
+                       "category": section, "source": source}
 
 
 def fetch_text(url: str, max_bytes: int = 12_000_000, timeout: int = 25) -> str:
@@ -150,7 +162,7 @@ class Catalog:
         self.db.execute("""INSERT INTO resources(id,url,title,description,category,first_seen,last_seen)
             VALUES (?,?,?,?,?,?,?) ON CONFLICT(url) DO UPDATE SET last_seen=excluded.last_seen,
             description=CASE WHEN length(resources.description)>length(excluded.description) THEN resources.description ELSE excluded.description END,
-            category=CASE WHEN resources.category='' THEN excluded.category ELSE resources.category END""",
+            category=CASE WHEN resources.category='' OR resources.category LIKE '<picture%' THEN excluded.category ELSE resources.category END""",
             (rid, url, title, desc, section, stamp, stamp))
         self.db.execute("INSERT OR IGNORE INTO occurrences(resource_id,source,origin) VALUES(?,?,?)",
                         (rid, item.get("source", "unknown"), origin))
